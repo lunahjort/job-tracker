@@ -1,15 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+app = FastAPI()
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# fake databas, endast lista
+jobs = []
 
 class Job(BaseModel):
     company: str
     role: str
     status: str
-
-app = FastAPI()
-
-# fake databas, endast lista
-jobs = []
 
 @app.get("/")
 def root():
@@ -37,4 +47,13 @@ def delete_job(job_id: int):
             return {"message": "Job deleted"}
     return {"error": "Job not found"}
 
-# UPDATE /jobs kommer här nedan
+# UPDATE /jobs
+@app.put("/jobs/{job_id}")
+def update_job(job_id: int, updated_job: Job):
+    for job in jobs:
+        if job["id"] == job_id:
+            job["company"] = updated_job.company
+            job["role"] = updated_job.role
+            job["status"] = updated_job.status
+            return job
+    return {"error": "Job not found"}
