@@ -20,8 +20,21 @@ def root():
 def get_jobs():
     return jobs
 
-# POST /jobs
+# uppdaterad POST /jobs (skapa ID)
 @app.post("/jobs")
 def add_job (job: Job):
-    jobs.append(job)
+    new_job = job.model_dump()
+    new_job["id"] = len(jobs) + 1
+    jobs.append(new_job)
     return {"message": "Job added"}
+
+# DELETE /jobs
+@app.delete("/jobs/{job_id}")
+def delete_job(job_id: int):
+    for job in jobs:
+        if job["id"] == job_id:
+            jobs.remove(job)
+            return {"message": "Job deleted"}
+    return {"error": "Job not found"}
+
+# UPDATE /jobs kommer här nedan
