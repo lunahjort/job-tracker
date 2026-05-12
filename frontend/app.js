@@ -1,19 +1,29 @@
 const API_URL = "http://127.0.0.1:8000/jobs";
 
-// hämta jobb från API
-// lägg till knappar för delete och update + ändring för rendering
+// hämta jobb från api
 async function fetchJobs() {
-    const res = await fetch(API_URL);
-    const jobs = await res.json();
-  
-    const list = document.getElementById("jobList");
-    list.innerHTML = "";
-  
-    jobs.forEach(job => {
-      const li = document.createElement("li");
-      li.textContent = `${job.company} - ${job.role} (${job.status})`;
-      list.appendChild(li);
-    });
+  const res = await fetch(API_URL);
+  const jobs = await res.json();
+
+  const list = document.getElementById("jobList");
+  list.innerHTML = "";
+
+  jobs.forEach(job => {
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+    <div class="job-info">
+        <strong>${job.company}</strong> - ${job.role} (${job.status})
+    </div>
+    
+    <div class="job-actions">
+        <button onclick="deleteJob(${job.id})">Delete</button>
+        <button onclick="updateJob(${job.id})">Mark Interview</button>
+    </div>
+    `;
+
+    list.appendChild(li);
+  });
 }
 
 fetchJobs();
@@ -41,5 +51,32 @@ form.addEventListener("submit", async (e) => {
 });
 
 // async delete-funktion
+async function deleteJob(id) {
+    await fetch(`${API_URL}/${id}`, {
+      method: "DELETE"
+    });
+  
+    fetchJobs();
+  }
 
-// update till interview?
+// update till interview
+async function updateJob(id) {
+    const res = await fetch(API_URL);
+    const jobs = await res.json();
+  
+    const job = jobs.find(j => j.id === id);
+  
+    await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        company: job.company,
+        role: job.role,
+        status: "Interview"
+      })
+    });
+  
+    fetchJobs();
+  }
